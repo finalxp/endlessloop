@@ -1,0 +1,152 @@
+package cn.xs.utils;
+
+import java.io.DataInputStream;
+import java.io.DataOutput;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.Random;
+
+import com.sun.jna.Memory;
+import com.sun.jna.Native;
+import com.sun.jna.Pointer;
+
+
+public class AudioUtils {
+	public static byte[] readAudioData(String path) {
+		File file = new File(path);
+		InputStream in = null;
+		try {
+			in = new FileInputStream(file);
+			byte[] bytes = new byte[in.available()];
+			int length = in.read(bytes, 44, bytes.length - 44);//44 is .wav text head sign length
+			return Arrays.copyOf(bytes, length);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				in.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		return null;
+	}
+
+	
+	
+	
+	
+	
+	public static Pointer[] float2DArrayToPointer(float[][] array) {
+		int floatSize = Native.getNativeSize(float.class);
+
+		Pointer[] data = new Pointer[array.length];
+		for (int i = 0, k = array.length; i < k; i++) {
+			float[] row = array[i];
+			data[i] = new Memory(row.length * floatSize);
+			data[i].write(0, row, 0, row.length);
+		}
+		return data;
+	}
+
+	public static Pointer[] byte2DArrayToPointer(byte[][] array) {
+		int floatSize = Native.getNativeSize(byte.class);
+
+		Pointer[] data = new Pointer[array.length];
+		for (int i = 0, k = array.length; i < k; i++) {
+			byte[] row = array[i];
+			data[i] = new Memory(row.length * floatSize);
+			data[i].write(0, row, 0, row.length);
+		}
+		return data;
+	}
+
+	public static void saveVoicePrint(String path, float[] voicePrint) {
+
+		DataOutputStream out = null;
+		try {
+			out = new DataOutputStream(new FileOutputStream(path));
+
+			for (float f : voicePrint) {
+				out.writeFloat(f);
+
+			}
+		} catch (Exception e) {
+			System.out.println(e.toString());
+			e.printStackTrace();
+		} finally {
+			if (out != null) {
+				try {
+					out.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+
+				}
+			}
+		}
+	}
+
+	
+	public static void saveMixAudio(String path, byte[] audioMixAudio){
+		DataOutputStream out = null;
+		try {
+			out = new DataOutputStream(new FileOutputStream(path,true));
+
+			for (byte b : audioMixAudio) {
+				//out.writeFloat(f);
+				out.writeByte(b);
+				out.flush();
+
+			}
+		} catch (Exception e) {
+			System.out.println(e.toString());
+			e.printStackTrace();
+		} finally {
+			if (out != null) {
+				try {
+					out.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+
+				}
+			}
+		}
+	}
+	
+	
+	
+	public static float[] readVoicePrint(String path) {
+		DataInputStream dis = null;
+		try {
+			dis = new DataInputStream(new FileInputStream(path));
+			float[] voicePrint = new float[dis.available() * 8 / Float.SIZE];
+			
+			int idx = 0;
+			while (dis.available() > 0) {
+				voicePrint[idx] = dis.readFloat();
+				idx++;
+			}
+			return voicePrint;
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			if (dis != null) {
+				try {
+					dis.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+					
+				}
+			}
+		}
+		return null;
+	}
+}  
